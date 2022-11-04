@@ -51,8 +51,21 @@ resource "aws_ecs_service" "ubersystem_web" {
 }
 
 resource "aws_ecs_task_definition" "ubersystem_web" {
-  family                = "ubersystem"
-  container_definitions = file("task-definitions/ubersystem-web.json")
+  family                    = "ubersystem"
+  container_definitions     = <<TASK_DEFINITION
+[
+  {
+    "name": "web",
+    "image": "bitbyt3r/ubersystem:latest",
+    "cpu": 1024,
+    "memory": 2048,
+    "essential": true
+  }
+]
+TASK_DEFINITION
+
+  requires_compatibilities  = ["FARGATE"]
+  network_mode              = "awsvpc"
 
   volume {
     name = "static-files"
