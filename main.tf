@@ -21,9 +21,9 @@ data "aws_ecs_cluster" "ecs" {
 # MAGFest Ubersystem Load Balancer
 # -------------------------------------------------------------------
 
-data "aws_lb" "elb" {
-  arn  = var.lb_arn
-}
+# data "aws_lb" "elb" {
+#   arn  = var.lb_arn
+# }
 
 resource "aws_lb_target_group" "ubersystem_web" {
   name_prefix   = "uber"
