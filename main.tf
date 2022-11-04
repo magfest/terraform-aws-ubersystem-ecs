@@ -26,7 +26,7 @@ data "aws_lb" "elb" {
 }
 
 resource "aws_lb_target_group" "ubersystem_web" {
-  name_prefix   = "ubersystem_web"
+  name_prefix   = "uber"
   port          = 80
   protocol      = "HTTP"
   vpc_id        = var.vpc_id
@@ -36,10 +36,10 @@ resource "aws_lb_target_group" "ubersystem_web" {
 # MAGFest Ubersystem Containers
 # -------------------------------------------------------------------
 
-resource "aws_ecs_service" "ubersystem" {
-  name            = "ubersystem"
+resource "aws_ecs_service" "ubersystem_web" {
+  name            = "ubersystem_web"
   cluster         = aws_ecs_cluster.ecs.id
-  task_definition = aws_ecs_task_definition.ubersystem.arn
+  task_definition = aws_ecs_task_definition.ubersystem_web.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
@@ -50,9 +50,9 @@ resource "aws_ecs_service" "ubersystem" {
   }
 }
 
-resource "aws_ecs_task_definition" "ubersystem" {
+resource "aws_ecs_task_definition" "ubersystem_web" {
   family                = "ubersystem"
-  container_definitions = file("task-definitions/ubersystem.json")
+  container_definitions = file("task-definitions/ubersystem-web.json")
 
   volume {
     name = "static-files"
