@@ -37,7 +37,17 @@ resource "aws_lb_target_group" "ubersystem_web" {
 # -------------------------------------------------------------------
 
 resource "aws_ecs_service" "ubersystem" {
-  
+  name            = "ubersystem"
+  cluster         = aws_ecs_cluster.ecs.id
+  task_definition = aws_ecs_task_definition.ubersystem.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.ubersystem_web.arn
+    container_name   = "web"
+    container_port   = 8282
+  }
 }
 
 resource "aws_ecs_task_definition" "ubersystem" {
@@ -64,27 +74,27 @@ resource "aws_ecs_task_definition" "ubersystem" {
 # MAGFest Ubersystem Supporting Services (RabbitMQ)
 # -------------------------------------------------------------------
 
-resource "aws_ecs_service" "rabbitmq" {
+# resource "aws_ecs_service" "rabbitmq" {
   
-}
+# }
 
-resource "aws_ecs_task_definition" "rabbitmq" {
-  family                = "rabbitmq"
-  container_definitions = file("task-definitions/rabbitmq.json")
-}
+# resource "aws_ecs_task_definition" "rabbitmq" {
+#   family                = "rabbitmq"
+#   container_definitions = file("task-definitions/rabbitmq.json")
+# }
 
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Supporting Services (Redis)
 # -------------------------------------------------------------------
 
-resource "aws_ecs_service" "redis" {
+# resource "aws_ecs_service" "redis" {
   
-}
+# }
 
-resource "aws_ecs_task_definition" "redis" {
-  family                = "redis"
-  container_definitions = file("task-definitions/redis.json")
-}
+# resource "aws_ecs_task_definition" "redis" {
+#   family                = "redis"
+#   container_definitions = file("task-definitions/redis.json")
+# }
 
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Shared File Directory
