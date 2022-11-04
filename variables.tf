@@ -17,3 +17,7 @@ variable "hostname" {
 variable "db_location" {
     
 }
+
+variable "db_secret" {
+    
+}
