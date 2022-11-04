@@ -16,6 +16,8 @@ data "aws_ecs_cluster" "ecs" {
   cluster_name = var.ecs_cluster
 }
 
+data "aws_caller_identity" "current" {}
+
 
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Load Balancer
@@ -128,6 +130,7 @@ TASK_DEFINITION
   memory                    = 2048
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
+  execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
 
   volume {
     name = "static-files"
@@ -290,6 +293,7 @@ TASK_DEFINITION
   memory                    = 2048
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
+  execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
 
   volume {
     name = "static-files"
@@ -404,6 +408,7 @@ TASK_DEFINITION
   memory                    = 2048
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
+  execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -433,6 +438,6 @@ resource "aws_efs_file_system" "ubersystem_static" {
   creation_token = "ubersystem"
 
   tags = {
-    Name = "MyProduct"
+    Name = "ubersystem"
   }
 }
