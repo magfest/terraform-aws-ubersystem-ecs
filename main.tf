@@ -38,7 +38,7 @@ resource "aws_lb_target_group" "ubersystem_web" {
 
 resource "aws_ecs_service" "ubersystem_web" {
   name            = "ubersystem_web"
-  cluster         = aws_ecs_cluster.ecs.id
+  cluster         = data.aws_ecs_cluster.ecs.id
   task_definition = aws_ecs_task_definition.ubersystem_web.arn
   desired_count   = 1
   launch_type     = "FARGATE"
