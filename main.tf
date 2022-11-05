@@ -445,6 +445,23 @@ resource "aws_appmesh_virtual_router" "rabbitmq" {
   }
 }
 
+resource "aws_appmesh_route" "rabbitmq" {
+  name                = "rabbitmq"
+  mesh_name           = aws_appmesh_mesh.ubersystem.id
+  virtual_router_name = aws_appmesh_virtual_router.rabbitmq.name
+
+  spec {
+    tcp_route {
+      action {
+        weighted_target {
+          virtual_node = aws_appmesh_virtual_node.rabbitmq.name
+          weight       = 100
+        }
+      }
+    }
+  }
+}
+
 
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Supporting Services (Redis)
@@ -608,6 +625,23 @@ resource "aws_appmesh_virtual_router" "redis" {
       port_mapping {
         port     = 6379
         protocol = "tcp"
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_route" "redis" {
+  name                = "redis"
+  mesh_name           = aws_appmesh_mesh.ubersystem.id
+  virtual_router_name = aws_appmesh_virtual_router.redis.name
+
+  spec {
+    tcp_route {
+      action {
+        weighted_target {
+          virtual_node = aws_appmesh_virtual_node.redis.name
+          weight       = 100
+        }
       }
     }
   }
