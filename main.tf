@@ -373,7 +373,7 @@ TASK_DEFINITION
     type           = "APPMESH"
     container_name = "envoy"
     properties = {
-      AppPorts         = "8080"
+      AppPorts         = "5672"
       EgressIgnoredIPs = "169.254.170.2,169.254.169.254"
       IgnoredUID       = "1337"
       ProxyEgressPort  = 15001
@@ -511,7 +511,7 @@ TASK_DEFINITION
     type           = "APPMESH"
     container_name = "envoy"
     properties = {
-      AppPorts         = "8080"
+      AppPorts         = "6379"
       EgressIgnoredIPs = "169.254.170.2,169.254.169.254"
       IgnoredUID       = "1337"
       ProxyEgressPort  = 15001
