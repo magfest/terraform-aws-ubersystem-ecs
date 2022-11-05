@@ -485,6 +485,12 @@ resource "aws_ecs_task_definition" "redis" {
         "containerPort": 6379
       }
     ],
+    "environment": [
+      {
+        "name": "ALLOW_EMPTY_PASSWORD",
+        "value": "true"
+      }
+    ],
     "image": "public.ecr.aws/ubuntu/redis:latest",
     "essential": true,
     "name": "redis",
