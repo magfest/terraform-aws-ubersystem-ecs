@@ -20,14 +20,18 @@ variable "hostname" {
     type    = string
 }
 
+variable "ubersystem_container" {
+    type    = string
+
+    default = "ghcr.io/magfest/magprime:main"
+}
+
 variable "db_location" {
     type    = string
 
-    default = "container"
+    default = "rds"
 }
 
 variable "db_secret" {
     type    = string
-
-    default = "null"
 }

@@ -23,11 +23,9 @@ variable "hostname" {
 variable "db_location" {
     type    = string
 
-    default = "container"
+    default = "rds"
 }
 
 variable "db_secret" {
     type    = string
-
-    default = "null"
 }
