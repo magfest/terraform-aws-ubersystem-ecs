@@ -122,7 +122,7 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
       },
       {
         "name": "VIRTUAL_HOST",
-        "value": "${vars.hostname}"
+        "value": "${var.hostname}"
       }
     ],
     "resourceRequirements": null,
@@ -133,7 +133,7 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     "secrets": [
       {
         "name": "DB_CONNECTION_STRING",
-        "valueFrom": "${vars.db_secret}"
+        "valueFrom": "${var.db_secret}"
       }
     ],
     "dockerSecurityOptions": null,
@@ -245,7 +245,7 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     "secrets": [
       {
         "name": "DB_CONNECTION_STRING",
-        "valueFrom": "${vars.db_secret}"
+        "valueFrom": "${var.db_secret}"
       }
     ],
     "dockerSecurityOptions": null,
@@ -298,7 +298,7 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     "secrets": [
       {
         "name": "DB_CONNECTION_STRING",
-        "valueFrom": "${vars.db_secret}"
+        "valueFrom": "${var.db_secret}"
       }
     ],
     "dockerSecurityOptions": null,
