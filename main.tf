@@ -128,6 +128,43 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     "image": "${var.ubersystem_container}",
     "essential": true,
     "name": "web"
+    "dependsOn": [ 
+      { 
+        "containerName": "envoy",
+        "condition": "HEALTHY" 
+      }
+    ]
+  },
+  {
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "secretOptions": null,
+      "options": {
+        "awslogs-group": "/ecs/Ubersystem",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    },
+    "environment": [
+      {
+        "name": "APPMESH_VIRTUAL_NODE_NAME",
+        "value": "${aws_appmesh_virtual_node.redis.arn}"
+      }
+    ],
+    "image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.23.1.0-prod",
+    "healthCheck": {
+      "retries": 3,
+      "command": [
+        "CMD-SHELL",
+        "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE"
+      ],
+      "timeout": 2,
+      "interval": 5,
+      "startPeriod": 10
+    },
+    "essential": true,
+    "user": "1337",
+    "name": "envoy"
   }
 ]
 TASK_DEFINITION
@@ -141,6 +178,19 @@ TASK_DEFINITION
   depends_on = [
     aws_lb_listener.ubersystem_web
   ]
+
+  task_role_arn = aws_iam_role.task_role.arn
+  proxy_configuration {
+    type           = "APPMESH"
+    container_name = "envoy"
+    properties = {
+      AppPorts         = "8282"
+      EgressIgnoredIPs = "169.254.170.2,169.254.169.254"
+      IgnoredUID       = "1337"
+      ProxyEgressPort  = 15001
+      ProxyIngressPort = 15000
+    }
+  }
 
   # volume {
   #   name = "static-files"
@@ -160,6 +210,76 @@ TASK_DEFINITION
   runtime_platform {
     operating_system_family = "LINUX"
     cpu_architecture        = "X86_64"
+  }
+}
+
+resource "aws_appmesh_virtual_service" "web" {
+  name      = "web.ubersystem.local"
+  mesh_name = aws_appmesh_mesh.web.id
+
+  spec {
+    provider {
+      virtual_node {
+        virtual_node_name = aws_appmesh_virtual_node.web.name
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_virtual_node" "web" {
+  name      = "web"
+  mesh_name = aws_appmesh_mesh.ubersystem.id
+
+  spec {
+    # backend {
+    #   virtual_service {
+    #     virtual_service_name = "servicea.simpleapp.local"
+    #   }
+    # }
+
+    listener {
+      port_mapping {
+        port     = 8282
+        protocol = "tcp"
+      }
+    }
+
+    service_discovery {
+      dns {
+        hostname = "web"
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_virtual_router" "web" {
+  name      = "web"
+  mesh_name = aws_appmesh_mesh.web.id
+
+  spec {
+    listener {
+      port_mapping {
+        port     = 8282
+        protocol = "tcp"
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_route" "web" {
+  name                = "web"
+  mesh_name           = aws_appmesh_mesh.ubersystem.id
+  virtual_router_name = aws_appmesh_virtual_router.web.name
+
+  spec {
+    tcp_route {
+      action {
+        weighted_target {
+          virtual_node = aws_appmesh_virtual_node.web.name
+          weight       = 100
+        }
+      }
+    }
   }
 }
 
