@@ -117,6 +117,14 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
       {
         "name": "VIRTUAL_HOST",
         "value": "${var.hostname}"
+      },
+      {
+        "name": "SESSION_HOST",
+        "value": "${aws_appmesh_virtual_service.redis.name}"
+      },
+      {
+        "name": "BROKER_HOST",
+        "value": "${aws_appmesh_virtual_service.rabbitmq.name}"
       }
     ],
     "secrets": [
