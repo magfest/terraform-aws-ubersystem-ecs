@@ -168,6 +168,10 @@ TASK_DEFINITION
   network_mode              = "awsvpc"
   execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
 
+  depends_on = [
+    aws_lb_listener.ubersystem_web
+  ]
+
   volume {
     name = "static-files"
 
