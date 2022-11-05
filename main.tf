@@ -434,7 +434,7 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     "memoryReservation": null,
     "volumesFrom": [],
     "stopTimeout": null,
-    "image": "rabbitmq:alpine",
+    "image": "public.ecr.aws/docker/library/rabbitmq:alpine",
     "startTimeout": null,
     "firelensConfiguration": null,
     "dependsOn": null,
