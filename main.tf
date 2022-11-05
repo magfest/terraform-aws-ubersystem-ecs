@@ -215,7 +215,7 @@ TASK_DEFINITION
 
 resource "aws_appmesh_virtual_service" "web" {
   name      = "web.ubersystem.local"
-  mesh_name = aws_appmesh_mesh.web.id
+  mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
     provider {
@@ -260,7 +260,7 @@ resource "aws_appmesh_virtual_node" "web" {
 
 resource "aws_appmesh_virtual_router" "web" {
   name      = "web"
-  mesh_name = aws_appmesh_mesh.web.id
+  mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
     listener {
