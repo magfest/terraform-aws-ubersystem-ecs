@@ -172,20 +172,20 @@ TASK_DEFINITION
     aws_lb_listener.ubersystem_web
   ]
 
-  volume {
-    name = "static-files"
+  # volume {
+  #   name = "static-files"
 
-    efs_volume_configuration {
-      file_system_id          = aws_efs_file_system.ubersystem_static.id
-      root_directory          = "/"
-      # transit_encryption      = "ENABLED"
-      # transit_encryption_port = 2999
-      # authorization_config {
-      #   access_point_id = aws_efs_access_point.test.id
-      #   iam             = "ENABLED"
-      # }
-    }
-  }
+  #   efs_volume_configuration {
+  #     file_system_id          = aws_efs_file_system.ubersystem_static.id
+  #     root_directory          = "/"
+  #     # transit_encryption      = "ENABLED"
+  #     # transit_encryption_port = 2999
+  #     # authorization_config {
+  #     #   access_point_id = aws_efs_access_point.test.id
+  #     #   iam             = "ENABLED"
+  #     # }
+  #   }
+  # }
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -341,20 +341,20 @@ TASK_DEFINITION
   network_mode              = "awsvpc"
   execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
 
-  volume {
-    name = "static-files"
+  # volume {
+  #   name = "static-files"
 
-    efs_volume_configuration {
-      file_system_id          = aws_efs_file_system.ubersystem_static.id
-      root_directory          = "/"
-      # transit_encryption      = "ENABLED"
-      # transit_encryption_port = 2999
-      # authorization_config {
-      #   access_point_id = aws_efs_access_point.test.id
-      #   iam             = "ENABLED"
-      # }
-    }
-  }
+  #   efs_volume_configuration {
+  #     file_system_id          = aws_efs_file_system.ubersystem_static.id
+  #     root_directory          = "/"
+  #     # transit_encryption      = "ENABLED"
+  #     # transit_encryption_port = 2999
+  #     # authorization_config {
+  #     #   access_point_id = aws_efs_access_point.test.id
+  #     #   iam             = "ENABLED"
+  #     # }
+  #   }
+  # }
 
   runtime_platform {
     operating_system_family = "LINUX"
