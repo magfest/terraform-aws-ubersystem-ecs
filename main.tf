@@ -231,11 +231,17 @@ resource "aws_appmesh_virtual_node" "web" {
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
-    # backend {
-    #   virtual_service {
-    #     virtual_service_name = "servicea.simpleapp.local"
-    #   }
-    # }
+    backend {
+      virtual_service {
+        virtual_service_name = aws_appmesh_virtual_service.rabbitmq.name
+      }
+    }
+
+    backend {
+      virtual_service {
+        virtual_service_name = aws_appmesh_virtual_service.redis.name
+      }
+    }
 
     listener {
       port_mapping {
