@@ -326,6 +326,34 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     "image": "public.ecr.aws/docker/library/rabbitmq:alpine",
     "essential": true,
     "name": "rabbitmq"
+    "dependsOn": [ 
+      { 
+        "containerName": "envoy",
+        "condition": "HEALTHY" 
+      }
+    ] 
+  },
+  {
+    "environment": [
+      {
+        "name": "APPMESH_VIRTUAL_NODE_NAME",
+        "value": "mesh/appmesh-workshop/virtualNode/crystal-lb-vanilla"
+      }
+    ],
+    "image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.23.1.0-prod",
+    "healthCheck": {
+      "retries": 3,
+      "command": [
+        "CMD-SHELL",
+        "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE"
+      ],
+      "timeout": 2,
+      "interval": 5,
+      "startPeriod": 10
+    },
+    "essential": true,
+    "user": "1337",
+    "name": "envoy"
   }
 ]
 TASK_DEFINITION
@@ -340,21 +368,125 @@ TASK_DEFINITION
     operating_system_family = "LINUX"
     cpu_architecture        = "X86_64"
   }
+
+  proxy_configuration {
+    type           = "APPMESH"
+    container_name = "envoy"
+    properties = {
+      AppPorts         = "8080"
+      EgressIgnoredIPs = "169.254.170.2,169.254.169.254"
+      IgnoredUID       = "1337"
+      ProxyEgressPort  = 15001
+      ProxyIngressPort = 15000
+    }
+  }
 }
+
+# resource "aws_appmesh_virtual_service" "rabbitmq" {
+#   name      = "rabbitmq.ubersystem.local"
+#   mesh_name = aws_appmesh_mesh.ubersystem.id
+
+#   spec {
+#     provider {
+#       virtual_node {
+#         virtual_node_name = aws_appmesh_virtual_node.serviceb1.name
+#       }
+#     }
+#   }
+# }
 
 
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Supporting Services (Redis)
 # -------------------------------------------------------------------
 
-# resource "aws_ecs_service" "redis" {
-  
-# }
+resource "aws_ecs_service" "rabbitmq" {
+  name            = "rabbitmq"
+  cluster         = data.aws_ecs_cluster.ecs.id
+  task_definition = aws_ecs_task_definition.rabbitmq.arn
+  desired_count   = 1
+  launch_type     = "FARGATE"
 
-# resource "aws_ecs_task_definition" "redis" {
-#   family                = "redis"
-#   container_definitions = file("task-definitions/redis.json")
-# }
+  network_configuration {
+    subnets           = var.subnet_ids
+    security_groups   = var.security_groups
+    assign_public_ip  = true
+  }
+}
+
+resource "aws_ecs_task_definition" "rabbitmq" {
+  family                    = "redis"
+  container_definitions     = <<TASK_DEFINITION
+[
+  {
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "secretOptions": null,
+      "options": {
+        "awslogs-group": "/ecs/Ubersystem",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    },
+    "portMappings": [
+      {
+        "hostPort": 5672,
+        "protocol": "tcp",
+        "containerPort": 5672
+      }
+    ],
+    "image": "public.ecr.aws/ubuntu/redis:latest",
+    "essential": true,
+    "name": "redis"
+  },
+  {
+    "environment": [
+      {
+        "name": "APPMESH_VIRTUAL_NODE_NAME",
+        "value": "mesh/appmesh-workshop/virtualNode/crystal-lb-vanilla"
+      }
+    ],
+    "image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.23.1.0-prod",
+    "healthCheck": {
+      "retries": 3,
+      "command": [
+        "CMD-SHELL",
+        "curl -s http://localhost:9901/server_info | grep state | grep -q LIVE"
+      ],
+      "timeout": 2,
+      "interval": 5,
+      "startPeriod": 10
+    },
+    "essential": true,
+    "user": "1337",
+    "name": "envoy"
+  }
+]
+TASK_DEFINITION
+
+  cpu                       = 256
+  memory                    = 512
+  requires_compatibilities  = ["FARGATE"]
+  network_mode              = "awsvpc"
+  execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+
+  runtime_platform {
+    operating_system_family = "LINUX"
+    cpu_architecture        = "X86_64"
+  }
+
+  proxy_configuration {
+    type           = "APPMESH"
+    container_name = "envoy"
+    properties = {
+      AppPorts         = "8080"
+      EgressIgnoredIPs = "169.254.170.2,169.254.169.254"
+      IgnoredUID       = "1337"
+      ProxyEgressPort  = 15001
+      ProxyIngressPort = 15000
+    }
+  }
+}
 
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Shared File Directory
@@ -367,3 +499,18 @@ resource "aws_efs_file_system" "ubersystem_static" {
     Name = "ubersystem"
   }
 }
+
+# -------------------------------------------------------------------
+# MAGFest Envoy Service Mesh (AWS App Mesh)
+# -------------------------------------------------------------------
+
+resource "aws_appmesh_mesh" "ubersystem" {
+  name = "ubersystem"
+
+  spec {
+    egress_filter {
+      type = "ALLOW_ALL"
+    }
+  }
+}
+
