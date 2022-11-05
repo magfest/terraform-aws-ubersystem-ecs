@@ -421,6 +421,20 @@ resource "aws_appmesh_virtual_node" "rabbitmq" {
   }
 }
 
+resource "aws_appmesh_virtual_router" "rabbitmq" {
+  name      = "rabbitmq"
+  mesh_name = aws_appmesh_mesh.ubersystem.id
+
+  spec {
+    listener {
+      port_mapping {
+        port     = 5672
+        protocol = "tcp"
+      }
+    }
+  }
+}
+
 
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Supporting Services (Redis)
@@ -554,6 +568,20 @@ resource "aws_appmesh_virtual_node" "redis" {
     service_discovery {
       dns {
         hostname = "redis.ubersystem.local"
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_virtual_router" "redis" {
+  name      = "redis"
+  mesh_name = aws_appmesh_mesh.ubersystem.id
+
+  spec {
+    listener {
+      port_mapping {
+        port     = 6379
+        protocol = "tcp"
       }
     }
   }
