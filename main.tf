@@ -52,7 +52,7 @@ resource "aws_lb_target_group" "ubersystem_web" {
 }
 
 resource "aws_lb_listener" "ubersystem_web" {
-  load_balancer_arn = aws_lb.front_end.arn
+  load_balancer_arn = aws_lb.ubersystem.arn
   port              = "443"
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
