@@ -382,18 +382,44 @@ TASK_DEFINITION
   }
 }
 
-# resource "aws_appmesh_virtual_service" "rabbitmq" {
-#   name      = "rabbitmq.ubersystem.local"
-#   mesh_name = aws_appmesh_mesh.ubersystem.id
+resource "aws_appmesh_virtual_service" "rabbitmq" {
+  name      = "rabbitmq.ubersystem.local"
+  mesh_name = aws_appmesh_mesh.ubersystem.id
 
-#   spec {
-#     provider {
-#       virtual_node {
-#         virtual_node_name = aws_appmesh_virtual_node.serviceb1.name
-#       }
-#     }
-#   }
-# }
+  spec {
+    provider {
+      virtual_node {
+        virtual_node_name = aws_appmesh_virtual_node.rabbitmq.name
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_virtual_node" "rabbitmq" {
+  name      = "rabbitmq"
+  mesh_name = aws_appmesh_mesh.ubersystem.id
+
+  spec {
+    # backend {
+    #   virtual_service {
+    #     virtual_service_name = "servicea.simpleapp.local"
+    #   }
+    # }
+
+    listener {
+      port_mapping {
+        port     = 5672
+        protocol = "tcp"
+      }
+    }
+
+    service_discovery {
+      dns {
+        hostname = "rabbitmq.ubersystem.local"
+      }
+    }
+  }
+}
 
 
 # -------------------------------------------------------------------
@@ -490,6 +516,45 @@ TASK_DEFINITION
       IgnoredUID       = "1337"
       ProxyEgressPort  = 15001
       ProxyIngressPort = 15000
+    }
+  }
+}
+
+resource "aws_appmesh_virtual_service" "redis" {
+  name      = "redis.ubersystem.local"
+  mesh_name = aws_appmesh_mesh.ubersystem.id
+
+  spec {
+    provider {
+      virtual_node {
+        virtual_node_name = aws_appmesh_virtual_node.redis.name
+      }
+    }
+  }
+}
+
+resource "aws_appmesh_virtual_node" "redis" {
+  name      = "redis"
+  mesh_name = aws_appmesh_mesh.ubersystem.id
+
+  spec {
+    # backend {
+    #   virtual_service {
+    #     virtual_service_name = "servicea.simpleapp.local"
+    #   }
+    # }
+
+    listener {
+      port_mapping {
+        port     = 6379
+        protocol = "tcp"
+      }
+    }
+
+    service_discovery {
+      dns {
+        hostname = "redis.ubersystem.local"
+      }
     }
   }
 }
