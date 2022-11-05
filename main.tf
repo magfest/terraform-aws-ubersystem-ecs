@@ -222,7 +222,7 @@ TASK_DEFINITION
 }
 
 resource "aws_appmesh_virtual_service" "web" {
-  name      = "web.ubersystem.local"
+  name      = "web.${aws_appmesh_mesh.ubersystem.name}.local"
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
@@ -527,7 +527,7 @@ TASK_DEFINITION
 }
 
 resource "aws_appmesh_virtual_service" "rabbitmq" {
-  name      = "rabbitmq.ubersystem.local"
+  name      = "rabbitmq.${aws_appmesh_mesh.ubersystem.name}.local"
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
@@ -544,12 +544,6 @@ resource "aws_appmesh_virtual_node" "rabbitmq" {
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
-    # backend {
-    #   virtual_service {
-    #     virtual_service_name = "servicea.simpleapp.local"
-    #   }
-    # }
-
     listener {
       port_mapping {
         port     = 5672
@@ -559,7 +553,7 @@ resource "aws_appmesh_virtual_node" "rabbitmq" {
 
     service_discovery {
       dns {
-        hostname = "rabbitmq"
+        hostname = aws_appmesh_virtual_service.rabbitmq.name
       }
     }
   }
@@ -712,7 +706,7 @@ TASK_DEFINITION
 }
 
 resource "aws_appmesh_virtual_service" "redis" {
-  name      = "redis.ubersystem.local"
+  name      = "redis.${aws_appmesh_mesh.ubersystem.name}.local"
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
@@ -729,12 +723,6 @@ resource "aws_appmesh_virtual_node" "redis" {
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
-    # backend {
-    #   virtual_service {
-    #     virtual_service_name = "servicea.simpleapp.local"
-    #   }
-    # }
-
     listener {
       port_mapping {
         port     = 6379
@@ -744,7 +732,7 @@ resource "aws_appmesh_virtual_node" "redis" {
 
     service_discovery {
       dns {
-        hostname = "redis"
+        hostname = aws_appmesh_virtual_service.redis.name
       }
     }
   }
