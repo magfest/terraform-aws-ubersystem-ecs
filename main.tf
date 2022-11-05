@@ -260,7 +260,7 @@ resource "aws_appmesh_virtual_node" "web" {
 
     service_discovery {
       dns {
-        hostname = "web"
+        hostname = "web" #Container name
       }
     }
   }
@@ -553,7 +553,7 @@ resource "aws_appmesh_virtual_node" "rabbitmq" {
 
     service_discovery {
       dns {
-        hostname = aws_appmesh_virtual_service.rabbitmq.name
+        hostname = "rabbitmq" #Container name
       }
     }
   }
@@ -732,7 +732,7 @@ resource "aws_appmesh_virtual_node" "redis" {
 
     service_discovery {
       dns {
-        hostname = aws_appmesh_virtual_service.redis.name
+        hostname = "redis" #Container name
       }
     }
   }
