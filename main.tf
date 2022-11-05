@@ -45,6 +45,12 @@ resource "aws_ecs_service" "ubersystem_web" {
   desired_count   = 1
   launch_type     = "FARGATE"
 
+  network_configuration {
+    subnets           = var.subnet_ids
+    security_groups   = var.security_groups
+    assign_public_ip  = true
+  }
+
   load_balancer {
     target_group_arn = aws_lb_target_group.ubersystem_web.arn
     container_name   = "web"
@@ -164,6 +170,12 @@ resource "aws_ecs_service" "ubersystem_celery" {
   task_definition = aws_ecs_task_definition.ubersystem_celery.arn
   desired_count   = 1
   launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets           = var.subnet_ids
+    security_groups   = var.security_groups
+    assign_public_ip  = false
+  }
 }
 
 resource "aws_ecs_task_definition" "ubersystem_celery" {
@@ -328,6 +340,12 @@ resource "aws_ecs_service" "rabbitmq" {
   task_definition = aws_ecs_task_definition.rabbitmq.arn
   desired_count   = 1
   launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets           = var.subnet_ids
+    security_groups   = var.security_groups
+    assign_public_ip  = false
+  }
 }
 
 resource "aws_ecs_task_definition" "rabbitmq" {

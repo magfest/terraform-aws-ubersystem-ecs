@@ -12,6 +12,12 @@ variable "vpc_id" {
     type    = string
 }
 
+variable "subnet_ids" {
+}
+
+variable "security_groups" {
+}
+
 variable "hostname" {
     type    = string
 }

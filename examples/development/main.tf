@@ -25,4 +25,6 @@ module "ubersystem" {
   hostname              = var.hostname
   db_location           = var.db_location
   db_secret             = var.db_secret
+  subnet_ids            = var.subnet_ids
+  security_groups       = var.security_groups
 }
