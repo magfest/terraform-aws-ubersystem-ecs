@@ -121,12 +121,8 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
         "value": "ssl"
       },
       {
-        "name": "DB_CONNECTION_STRING",
-        "value": "REDACTED"
-      },
-      {
         "name": "VIRTUAL_HOST",
-        "value": "rams.hackafe.net"
+        "value": "${vars.hostname}"
       }
     ],
     "resourceRequirements": null,
@@ -134,7 +130,12 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     "dnsServers": null,
     "mountPoints": [],
     "workingDirectory": null,
-    "secrets": null,
+    "secrets": [
+      {
+        "name": "DB_CONNECTION_STRING",
+        "valueFrom": "${vars.db_secret}"
+      }
+    ],
     "dockerSecurityOptions": null,
     "memory": null,
     "memoryReservation": null,
@@ -235,18 +236,18 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     ],
     "linuxParameters": null,
     "cpu": 0,
-    "environment": [
-      {
-        "name": "DB_CONNECTION_STRING",
-        "value": "REDACTED"
-      }
-    ],
+    "environment": null,
     "resourceRequirements": null,
     "ulimits": null,
     "dnsServers": null,
     "mountPoints": [],
     "workingDirectory": null,
-    "secrets": null,
+    "secrets": [
+      {
+        "name": "DB_CONNECTION_STRING",
+        "valueFrom": "${vars.db_secret}"
+      }
+    ],
     "dockerSecurityOptions": null,
     "memory": null,
     "memoryReservation": null,
@@ -288,18 +289,18 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     "command": [],
     "linuxParameters": null,
     "cpu": 0,
-    "environment": [
-      {
-        "name": "DB_CONNECTION_STRING",
-        "value": "REDACTED"
-      }
-    ],
+    "environment": null,
     "resourceRequirements": null,
     "ulimits": null,
     "dnsServers": null,
     "mountPoints": [],
     "workingDirectory": null,
-    "secrets": null,
+    "secrets": [
+      {
+        "name": "DB_CONNECTION_STRING",
+        "valueFrom": "${vars.db_secret}"
+      }
+    ],
     "dockerSecurityOptions": null,
     "memory": null,
     "memoryReservation": null,
