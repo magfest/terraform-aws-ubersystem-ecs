@@ -400,10 +400,10 @@ TASK_DEFINITION
 # MAGFest Ubersystem Supporting Services (Redis)
 # -------------------------------------------------------------------
 
-resource "aws_ecs_service" "rabbitmq" {
-  name            = "rabbitmq"
+resource "aws_ecs_service" "redis" {
+  name            = "redis"
   cluster         = data.aws_ecs_cluster.ecs.id
-  task_definition = aws_ecs_task_definition.rabbitmq.arn
+  task_definition = aws_ecs_task_definition.redis.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
@@ -414,7 +414,7 @@ resource "aws_ecs_service" "rabbitmq" {
   }
 }
 
-resource "aws_ecs_task_definition" "rabbitmq" {
+resource "aws_ecs_task_definition" "redis" {
   family                    = "redis"
   container_definitions     = <<TASK_DEFINITION
 [
@@ -430,9 +430,9 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     },
     "portMappings": [
       {
-        "hostPort": 5672,
+        "hostPort": 6379,
         "protocol": "tcp",
-        "containerPort": 5672
+        "containerPort": 6379
       }
     ],
     "image": "public.ecr.aws/ubuntu/redis:latest",
