@@ -370,7 +370,7 @@ resource "aws_lb_target_group" "rabbitmq" {
 resource "aws_lb_listener" "rabbitmq" {
   load_balancer_arn = aws_lb.ubersystem_internal.arn
   port              = "5672"
-  protocol          = "TLS"
+  protocol          = "TCP"
 
   default_action {
     type             = "forward"
@@ -462,7 +462,7 @@ resource "aws_lb_target_group" "redis" {
 resource "aws_lb_listener" "redis" {
   load_balancer_arn = aws_lb.ubersystem_internal.arn
   port              = "6379"
-  protocol          = "TLS"
+  protocol          = "TCP"
 
   default_action {
     type             = "forward"
