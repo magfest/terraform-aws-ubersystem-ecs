@@ -127,7 +127,7 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     ],
     "image": "${var.ubersystem_container}",
     "essential": true,
-    "name": "web"
+    "name": "web",
     "dependsOn": [ 
       { 
         "containerName": "envoy",
@@ -148,7 +148,7 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     "environment": [
       {
         "name": "APPMESH_VIRTUAL_NODE_NAME",
-        "value": "${aws_appmesh_virtual_node.redis.arn}"
+        "value": "${aws_appmesh_virtual_node.web.arn}"
       }
     ],
     "image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.23.1.0-prod",
