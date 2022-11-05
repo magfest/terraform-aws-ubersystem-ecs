@@ -53,7 +53,7 @@ resource "aws_ecs_service" "ubersystem_web" {
 }
 
 resource "aws_ecs_task_definition" "ubersystem_web" {
-  family                    = "ubersystem"
+  family                    = "ubersystem_web"
   container_definitions     = <<TASK_DEFINITION
 [
   {
@@ -167,7 +167,7 @@ resource "aws_ecs_service" "ubersystem_celery" {
 }
 
 resource "aws_ecs_task_definition" "ubersystem_celery" {
-  family                    = "ubersystem"
+  family                    = "ubersystem_celery"
   container_definitions     = <<TASK_DEFINITION
 [
   {
