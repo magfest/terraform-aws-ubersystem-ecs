@@ -334,10 +334,19 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     ] 
   },
   {
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "secretOptions": null,
+      "options": {
+        "awslogs-group": "/ecs/Ubersystem",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    },
     "environment": [
       {
         "name": "APPMESH_VIRTUAL_NODE_NAME",
-        "value": "mesh/ubersystem/virtualNode/rabbitmq"
+        "value": "${aws_appmesh_virtual_node.rabbitmq.arn}"
       }
     ],
     "image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.23.1.0-prod",
@@ -486,10 +495,19 @@ resource "aws_ecs_task_definition" "redis" {
     ]
   },
   {
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "secretOptions": null,
+      "options": {
+        "awslogs-group": "/ecs/Ubersystem",
+        "awslogs-region": "us-east-1",
+        "awslogs-stream-prefix": "ecs"
+      }
+    },
     "environment": [
       {
         "name": "APPMESH_VIRTUAL_NODE_NAME",
-        "value": "mesh/ubersystem/virtualNode/redis"
+        "value": "${aws_appmesh_virtual_node.redis.arn}"
       }
     ],
     "image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.23.1.0-prod",
