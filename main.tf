@@ -378,6 +378,7 @@ TASK_DEFINITION
     cpu_architecture        = "X86_64"
   }
 
+  task_role_arn = aws_iam_role.task_role.arn
   proxy_configuration {
     type           = "APPMESH"
     container_name = "envoy"
@@ -539,6 +540,7 @@ TASK_DEFINITION
     cpu_architecture        = "X86_64"
   }
 
+  task_role_arn = aws_iam_role.task_role.arn
   proxy_configuration {
     type           = "APPMESH"
     container_name = "envoy"
@@ -629,5 +631,30 @@ resource "aws_appmesh_mesh" "ubersystem" {
       type = "ALLOW_ALL"
     }
   }
+}
+
+resource "aws_iam_role" "task_role" {
+  name_prefix = "uber"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = "sts:AssumeRole"
+        Effect = "Allow"
+        Sid    = ""
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "task_role_envoy" {
+  role       = aws_iam_role.task_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess"
 }
 
