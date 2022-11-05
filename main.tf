@@ -424,7 +424,7 @@ resource "aws_appmesh_virtual_node" "rabbitmq" {
 
     service_discovery {
       dns {
-        hostname = "rabbitmq.ubersystem.local"
+        hostname = "rabbitmq"
       }
     }
   }
@@ -585,7 +585,7 @@ resource "aws_appmesh_virtual_node" "redis" {
 
     service_discovery {
       dns {
-        hostname = "redis.ubersystem.local"
+        hostname = "redis"
       }
     }
   }
