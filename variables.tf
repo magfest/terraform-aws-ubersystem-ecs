@@ -31,3 +31,9 @@ variable "db_secret" {
 
     default = "null"
 }
+
+variable "broker_password" {
+    type    = string
+
+    default = "celery"
+}

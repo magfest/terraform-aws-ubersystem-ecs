@@ -84,7 +84,7 @@ resource "aws_ecs_service" "ubersystem_web" {
   load_balancer {
     target_group_arn = aws_lb_target_group.ubersystem_web.arn
     container_name   = "web"
-    container_port   = 8282
+    container_port   = 80
   }
 }
 
@@ -107,9 +107,9 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     "entryPoint": [],
     "portMappings": [
       {
-        "hostPort": 8282,
+        "hostPort": 80,
         "protocol": "tcp",
-        "containerPort": 8282
+        "containerPort": 80
       }
     ],
     "command": [],
@@ -117,12 +117,16 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     "cpu": 0,
     "environment": [
       {
-        "name": "CERT_NAME",
-        "value": "ssl"
+        "name": "HOSTNAME",
+        "value": "${var.hostname}"
       },
       {
-        "name": "VIRTUAL_HOST",
-        "value": "${var.hostname}"
+        "name": "DEFAULT_URL",
+        "value": "/"
+      },
+      {
+        "name": "PORT",
+        "value": "80"
       }
     ],
     "resourceRequirements": null,
@@ -141,7 +145,7 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     "memoryReservation": null,
     "volumesFrom": [],
     "stopTimeout": null,
-    "image": "bitbyt3r/ubersystem:latest",
+    "image": "ghcr.io/magfest/magprime:main",
     "startTimeout": null,
     "firelensConfiguration": null,
     "dependsOn": null,
@@ -236,7 +240,24 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     ],
     "linuxParameters": null,
     "cpu": 0,
-    "environment": null,
+    "environment": [
+      {
+        "name": "BROKER_HOST",
+        "value": "rabbitmq"
+      },
+      {
+        "name": "BROKER_PORT",
+        "value": "6379"
+      },
+      {
+        "name": "BROKER_USER",
+        "value": "celery"
+      },
+      {
+        "name": "BROKER_VHOST",
+        "value": "uber"
+      }
+    ],
     "resourceRequirements": null,
     "ulimits": null,
     "dnsServers": null,
@@ -246,6 +267,10 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
       {
         "name": "DB_CONNECTION_STRING",
         "valueFrom": "${var.db_secret}"
+      },
+      {
+        "name": "BROKER_PASS",
+        "valueFrom": "${var.broker_password}"
       }
     ],
     "dockerSecurityOptions": null,
@@ -253,7 +278,7 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     "memoryReservation": null,
     "volumesFrom": [],
     "stopTimeout": null,
-    "image": "bitbyt3r/ubersystem:latest",
+    "image": "ghcr.io/magfest/magprime:main",
     "startTimeout": null,
     "firelensConfiguration": null,
     "dependsOn": null,
@@ -289,7 +314,24 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     "command": [],
     "linuxParameters": null,
     "cpu": 0,
-    "environment": null,
+    "environment": [
+      {
+        "name": "BROKER_HOST",
+        "value": "rabbitmq"
+      },
+      {
+        "name": "BROKER_PORT",
+        "value": "6379"
+      },
+      {
+        "name": "BROKER_USER",
+        "value": "celery"
+      },
+      {
+        "name": "BROKER_VHOST",
+        "value": "uber"
+      }
+    ],
     "resourceRequirements": null,
     "ulimits": null,
     "dnsServers": null,
@@ -299,6 +341,10 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
       {
         "name": "DB_CONNECTION_STRING",
         "valueFrom": "${var.db_secret}"
+      },
+      {
+        "name": "BROKER_PASS",
+        "valueFrom": "${var.broker_password}"
       }
     ],
     "dockerSecurityOptions": null,
@@ -412,10 +458,6 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     "cpu": 0,
     "environment": [
       {
-        "name": "RABBITMQ_DEFAULT_PASS",
-        "value": "celery"
-      },
-      {
         "name": "RABBITMQ_DEFAULT_USER",
         "value": "celery"
       },
@@ -429,7 +471,12 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     "dnsServers": null,
     "mountPoints": [],
     "workingDirectory": null,
-    "secrets": null,
+    "secrets": [
+      {
+        "name": "RABBITMQ_DEFAULT_PASS",
+        "valueFrom": "${var.broker_password}"
+      }
+    ],
     "dockerSecurityOptions": null,
     "memory": null,
     "memoryReservation": null,
