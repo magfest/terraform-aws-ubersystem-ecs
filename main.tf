@@ -93,8 +93,6 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
   container_definitions     = <<TASK_DEFINITION
 [
   {
-    "dnsSearchDomains": null,
-    "environmentFiles": null,
     "logConfiguration": {
       "logDriver": "awslogs",
       "secretOptions": null,
@@ -104,7 +102,6 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
         "awslogs-stream-prefix": "ecs"
       }
     },
-    "entryPoint": [],
     "portMappings": [
       {
         "hostPort": 8282,
@@ -112,9 +109,6 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
         "containerPort": 8282
       }
     ],
-    "command": [],
-    "linuxParameters": null,
-    "cpu": 0,
     "environment": [
       {
         "name": "CERT_NAME",
@@ -125,39 +119,14 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
         "value": "${var.hostname}"
       }
     ],
-    "resourceRequirements": null,
-    "ulimits": null,
-    "dnsServers": null,
-    "mountPoints": [],
-    "workingDirectory": null,
     "secrets": [
       {
         "name": "DB_CONNECTION_STRING",
         "valueFrom": "${var.db_secret}"
       }
     ],
-    "dockerSecurityOptions": null,
-    "memory": null,
-    "memoryReservation": null,
-    "volumesFrom": [],
-    "stopTimeout": null,
     "image": "${var.ubersystem_container}",
-    "startTimeout": null,
-    "firelensConfiguration": null,
-    "dependsOn": null,
-    "disableNetworking": null,
-    "interactive": null,
-    "healthCheck": null,
     "essential": true,
-    "links": null,
-    "hostname": null,
-    "extraHosts": null,
-    "pseudoTerminal": null,
-    "user": null,
-    "readonlyRootFilesystem": null,
-    "dockerLabels": null,
-    "systemControls": null,
-    "privileged": null,
     "name": "web"
   }
 ]
@@ -218,8 +187,6 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
   container_definitions     = <<TASK_DEFINITION
 [
   {
-    "dnsSearchDomains": null,
-    "environmentFiles": null,
     "logConfiguration": {
       "logDriver": "awslogs",
       "secretOptions": null,
@@ -229,52 +196,20 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
         "awslogs-stream-prefix": "ecs"
       }
     },
-    "entryPoint": [],
-    "portMappings": [],
     "command": [
       "celery-beat"
     ],
-    "linuxParameters": null,
-    "cpu": 0,
-    "environment": null,
-    "resourceRequirements": null,
-    "ulimits": null,
-    "dnsServers": null,
-    "mountPoints": [],
-    "workingDirectory": null,
     "secrets": [
       {
         "name": "DB_CONNECTION_STRING",
         "valueFrom": "${var.db_secret}"
       }
     ],
-    "dockerSecurityOptions": null,
-    "memory": null,
-    "memoryReservation": null,
-    "volumesFrom": [],
-    "stopTimeout": null,
     "image": "${var.ubersystem_container}",
-    "startTimeout": null,
-    "firelensConfiguration": null,
-    "dependsOn": null,
-    "disableNetworking": null,
-    "interactive": null,
-    "healthCheck": null,
     "essential": true,
-    "links": null,
-    "hostname": null,
-    "extraHosts": null,
-    "pseudoTerminal": null,
-    "user": null,
-    "readonlyRootFilesystem": null,
-    "dockerLabels": null,
-    "systemControls": null,
-    "privileged": null,
     "name": "celery-beat"
   },
   {
-    "dnsSearchDomains": null,
-    "environmentFiles": null,
     "logConfiguration": {
       "logDriver": "awslogs",
       "secretOptions": null,
@@ -284,34 +219,13 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
         "awslogs-stream-prefix": "ecs"
       }
     },
-    "entryPoint": [],
-    "portMappings": [],
-    "command": [],
-    "linuxParameters": null,
-    "cpu": 0,
-    "environment": null,
-    "resourceRequirements": null,
-    "ulimits": null,
-    "dnsServers": null,
-    "mountPoints": [],
-    "workingDirectory": null,
     "secrets": [
       {
         "name": "DB_CONNECTION_STRING",
         "valueFrom": "${var.db_secret}"
       }
     ],
-    "dockerSecurityOptions": null,
-    "memory": null,
-    "memoryReservation": null,
-    "volumesFrom": [],
-    "stopTimeout": null,
     "image": "${var.ubersystem_container}",
-    "startTimeout": null,
-    "firelensConfiguration": null,
-    "dependsOn": null,
-    "disableNetworking": null,
-    "interactive": null,
     "healthCheck": {
       "retries": 3,
       "command": [
@@ -322,22 +236,13 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
       "startPeriod": null
     },
     "essential": true,
-    "links": null,
-    "hostname": null,
-    "extraHosts": null,
-    "pseudoTerminal": null,
-    "user": null,
-    "readonlyRootFilesystem": null,
-    "dockerLabels": null,
-    "systemControls": null,
-    "privileged": null,
     "name": "celery-worker"
   }
 ]
 TASK_DEFINITION
 
-  cpu                       = 1024
-  memory                    = 2048
+  cpu                       = 256
+  memory                    = 512
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
   execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
@@ -388,8 +293,6 @@ resource "aws_ecs_task_definition" "rabbitmq" {
   container_definitions     = <<TASK_DEFINITION
 [
   {
-    "dnsSearchDomains": null,
-    "environmentFiles": null,
     "logConfiguration": {
       "logDriver": "awslogs",
       "secretOptions": null,
@@ -399,7 +302,6 @@ resource "aws_ecs_task_definition" "rabbitmq" {
         "awslogs-stream-prefix": "ecs"
       }
     },
-    "entryPoint": [],
     "portMappings": [
       {
         "hostPort": 5672,
@@ -407,9 +309,6 @@ resource "aws_ecs_task_definition" "rabbitmq" {
         "containerPort": 5672
       }
     ],
-    "command": [],
-    "linuxParameters": null,
-    "cpu": 0,
     "environment": [
       {
         "name": "RABBITMQ_DEFAULT_PASS",
@@ -424,41 +323,15 @@ resource "aws_ecs_task_definition" "rabbitmq" {
         "value": "uber"
       }
     ],
-    "resourceRequirements": null,
-    "ulimits": null,
-    "dnsServers": null,
-    "mountPoints": [],
-    "workingDirectory": null,
-    "secrets": null,
-    "dockerSecurityOptions": null,
-    "memory": null,
-    "memoryReservation": null,
-    "volumesFrom": [],
-    "stopTimeout": null,
     "image": "public.ecr.aws/docker/library/rabbitmq:alpine",
-    "startTimeout": null,
-    "firelensConfiguration": null,
-    "dependsOn": null,
-    "disableNetworking": null,
-    "interactive": null,
-    "healthCheck": null,
     "essential": true,
-    "links": null,
-    "hostname": null,
-    "extraHosts": null,
-    "pseudoTerminal": null,
-    "user": null,
-    "readonlyRootFilesystem": null,
-    "dockerLabels": null,
-    "systemControls": null,
-    "privileged": null,
     "name": "rabbitmq"
   }
 ]
 TASK_DEFINITION
 
-  cpu                       = 1024
-  memory                    = 2048
+  cpu                       = 256
+  memory                    = 512
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
   execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
