@@ -337,7 +337,7 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     "environment": [
       {
         "name": "APPMESH_VIRTUAL_NODE_NAME",
-        "value": "mesh/appmesh-workshop/virtualNode/crystal-lb-vanilla"
+        "value": "mesh/ubersystem/virtualNode/rabbitmq"
       }
     ],
     "image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.23.1.0-prod",
@@ -443,7 +443,7 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     "environment": [
       {
         "name": "APPMESH_VIRTUAL_NODE_NAME",
-        "value": "mesh/appmesh-workshop/virtualNode/crystal-lb-vanilla"
+        "value": "mesh/ubersystem/virtualNode/redis"
       }
     ],
     "image": "public.ecr.aws/appmesh/aws-appmesh-envoy:v1.23.1.0-prod",
