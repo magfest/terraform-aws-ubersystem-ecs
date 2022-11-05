@@ -325,7 +325,7 @@ resource "aws_ecs_task_definition" "rabbitmq" {
     ],
     "image": "public.ecr.aws/docker/library/rabbitmq:alpine",
     "essential": true,
-    "name": "rabbitmq"
+    "name": "rabbitmq",
     "dependsOn": [ 
       { 
         "containerName": "envoy",
@@ -437,7 +437,13 @@ resource "aws_ecs_task_definition" "redis" {
     ],
     "image": "public.ecr.aws/ubuntu/redis:latest",
     "essential": true,
-    "name": "redis"
+    "name": "redis",
+    "dependsOn": [ 
+      { 
+        "containerName": "envoy",
+        "condition": "HEALTHY" 
+      }
+    ]
   },
   {
     "environment": [
