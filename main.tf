@@ -222,7 +222,7 @@ TASK_DEFINITION
 }
 
 resource "aws_appmesh_virtual_service" "web" {
-  name      = "web.${aws_appmesh_mesh.ubersystem.name}.local"
+  name      = "web.${aws_appmesh_mesh.ubersystem.name}"
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
@@ -266,36 +266,36 @@ resource "aws_appmesh_virtual_node" "web" {
   }
 }
 
-resource "aws_appmesh_virtual_router" "web" {
-  name      = "web"
-  mesh_name = aws_appmesh_mesh.ubersystem.id
+# resource "aws_appmesh_virtual_router" "web" {
+#   name      = "web"
+#   mesh_name = aws_appmesh_mesh.ubersystem.id
 
-  spec {
-    listener {
-      port_mapping {
-        port     = 8282
-        protocol = "tcp"
-      }
-    }
-  }
-}
+#   spec {
+#     listener {
+#       port_mapping {
+#         port     = 8282
+#         protocol = "tcp"
+#       }
+#     }
+#   }
+# }
 
-resource "aws_appmesh_route" "web" {
-  name                = "web"
-  mesh_name           = aws_appmesh_mesh.ubersystem.id
-  virtual_router_name = aws_appmesh_virtual_router.web.name
+# resource "aws_appmesh_route" "web" {
+#   name                = "web"
+#   mesh_name           = aws_appmesh_mesh.ubersystem.id
+#   virtual_router_name = aws_appmesh_virtual_router.web.name
 
-  spec {
-    tcp_route {
-      action {
-        weighted_target {
-          virtual_node = aws_appmesh_virtual_node.web.name
-          weight       = 100
-        }
-      }
-    }
-  }
-}
+#   spec {
+#     tcp_route {
+#       action {
+#         weighted_target {
+#           virtual_node = aws_appmesh_virtual_node.web.name
+#           weight       = 100
+#         }
+#       }
+#     }
+#   }
+# }
 
 
 # -------------------------------------------------------------------
@@ -527,7 +527,7 @@ TASK_DEFINITION
 }
 
 resource "aws_appmesh_virtual_service" "rabbitmq" {
-  name      = "rabbitmq.${aws_appmesh_mesh.ubersystem.name}.local"
+  name      = "rabbitmq.${aws_appmesh_mesh.ubersystem.name}"
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
@@ -706,7 +706,7 @@ TASK_DEFINITION
 }
 
 resource "aws_appmesh_virtual_service" "redis" {
-  name      = "redis.${aws_appmesh_mesh.ubersystem.name}.local"
+  name      = "redis.${aws_appmesh_mesh.ubersystem.name}"
   mesh_name = aws_appmesh_mesh.ubersystem.id
 
   spec {
