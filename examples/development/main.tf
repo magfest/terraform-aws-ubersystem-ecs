@@ -20,7 +20,7 @@ module "ubersystem" {
   source = "../../"
 
   ecs_cluster           = var.ecs_cluster
-  lb_arn                = var.lb_arn
+  cert_arn              = var.cert_arn
   vpc_id                = var.vpc_id
   hostname              = var.hostname
   db_location           = var.db_location

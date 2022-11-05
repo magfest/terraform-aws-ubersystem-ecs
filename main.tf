@@ -23,9 +23,25 @@ data "aws_caller_identity" "current" {}
 # MAGFest Ubersystem Load Balancer
 # -------------------------------------------------------------------
 
-# data "aws_lb" "elb" {
-#   arn  = var.lb_arn
-# }
+resource "aws_lb" "ubersystem" {
+  name_prefix        = "uber"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = var.security_groups
+  subnets            = var.subnet_ids
+
+  enable_deletion_protection = false
+
+  # access_logs {
+  #   bucket  = aws_s3_bucket.lb_logs.bucket
+  #   prefix  = "test-lb"
+  #   enabled = true
+  # }
+
+  # tags = {
+  #   Environment = "production"
+  # }
+}
 
 resource "aws_lb_target_group" "ubersystem_web" {
   name_prefix   = "uber"
@@ -33,6 +49,19 @@ resource "aws_lb_target_group" "ubersystem_web" {
   protocol      = "HTTP"
   target_type   = "ip"
   vpc_id        = var.vpc_id
+}
+
+resource "aws_lb_listener" "ubersystem_web" {
+  load_balancer_arn = aws_lb.front_end.arn
+  port              = "443"
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = var.cert_arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.ubersystem_web.arn
+  }
 }
 
 # -------------------------------------------------------------------

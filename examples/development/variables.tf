@@ -2,10 +2,8 @@ variable "ecs_cluster" {
     type    = string
 }
 
-variable "lb_arn" {
+variable "cert_arn" {
     type    = string
-    
-    default = "null"
 }
 
 variable "vpc_id" {
