@@ -315,7 +315,7 @@ resource "aws_ecs_service" "rabbitmq" {
   network_configuration {
     subnets           = var.subnet_ids
     security_groups   = var.security_groups
-    assign_public_ip  = false
+    assign_public_ip  = true
   }
 
   load_balancer {
@@ -415,7 +415,7 @@ resource "aws_ecs_service" "redis" {
   network_configuration {
     subnets           = var.subnet_ids
     security_groups   = var.security_groups
-    assign_public_ip  = false
+    assign_public_ip  = true
   }
 
   load_balancer {
