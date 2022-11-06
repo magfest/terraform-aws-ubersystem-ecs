@@ -16,6 +16,10 @@ data "aws_ecs_cluster" "ecs" {
   cluster_name = var.ecs_cluster
 }
 
+data "aws_subnet" "primary" {
+  id = var.subnet_ids[0]
+}
+
 data "aws_caller_identity" "current" {}
 
 
@@ -38,7 +42,7 @@ resource "aws_lb_target_group" "ubersystem_web" {
   port          = 80
   protocol      = "HTTP"
   target_type   = "ip"
-  vpc_id        = var.vpc_id
+  vpc_id        = data.aws_subnet.primary.vpc_id
 
   health_check {
     healthy_threshold   = 2
@@ -116,7 +120,6 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
   {
     "logConfiguration": {
       "logDriver": "awslogs",
-      "secretOptions": null,
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
@@ -220,7 +223,6 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
   {
     "logConfiguration": {
       "logDriver": "awslogs",
-      "secretOptions": null,
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
@@ -243,7 +245,6 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
   {
     "logConfiguration": {
       "logDriver": "awslogs",
-      "secretOptions": null,
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
@@ -332,7 +333,6 @@ resource "aws_ecs_task_definition" "rabbitmq" {
   {
     "logConfiguration": {
       "logDriver": "awslogs",
-      "secretOptions": null,
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
@@ -386,7 +386,7 @@ resource "aws_lb_target_group" "rabbitmq" {
   port        = 5672
   protocol    = "TCP"
   target_type = "ip"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_subnet.primary.vpc_id
 }
 
 resource "aws_lb_listener" "rabbitmq" {
@@ -432,7 +432,6 @@ resource "aws_ecs_task_definition" "redis" {
   {
     "logConfiguration": {
       "logDriver": "awslogs",
-      "secretOptions": null,
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
@@ -478,7 +477,7 @@ resource "aws_lb_target_group" "redis" {
   port        = 6379
   protocol    = "TCP"
   target_type = "ip"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_subnet.primary.vpc_id
 }
 
 resource "aws_lb_listener" "redis" {

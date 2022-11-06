@@ -6,24 +6,22 @@ variable "cert_arn" {
     type    = string
 }
 
-variable "vpc_id" {
-    type    = string
-}
-
 variable "subnet_ids" {
+    type    = list(string)
 }
 
 variable "security_groups" {
+    type    = list(string)
 }
 
 variable "hostname" {
     type    = string
 }
 
-variable "db_location" {
+variable "ubersystem_container" {
     type    = string
 
-    default = "rds"
+    default = "ghcr.io/magfest/magprime:main"
 }
 
 variable "db_secret" {
