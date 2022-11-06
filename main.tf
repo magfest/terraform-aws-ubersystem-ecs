@@ -46,6 +46,7 @@ resource "aws_lb_target_group" "ubersystem_web" {
     unhealthy_threshold = 10
     timeout             = 5
     path                = "/"
+    matcher             = "200-499"
   }
 }
 
