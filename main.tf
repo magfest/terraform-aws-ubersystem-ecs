@@ -50,7 +50,7 @@ resource "aws_lb_target_group" "ubersystem_web" {
   }
 }
 
-resource "aws_lb_listener" "ubersystem_web" {
+resource "aws_lb_listener" "ubersystem_web_http" {
   load_balancer_arn = aws_lb.ubersystem.arn
   port              = "80"
   protocol          = "HTTP"
