@@ -39,6 +39,14 @@ resource "aws_lb_target_group" "ubersystem_web" {
   protocol      = "HTTP"
   target_type   = "ip"
   vpc_id        = var.vpc_id
+
+  health_check {
+    healthy_threshold   = 2
+    interval            = 30
+    unhealthy_threshold = 10
+    timeout             = 5
+    path                = "/"
+  }
 }
 
 resource "aws_lb_listener" "ubersystem_web" {
