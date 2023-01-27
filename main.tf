@@ -171,11 +171,11 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
       },
       {
         "name": "SESSION_HOST",
-        "value": "redis"
+        "value": "redis.${var.hostname}"
       },
       {
         "name": "BROKER_HOST",
-        "value": "rabbitmq"
+        "value": "rabbitmq.${var.hostname}"
       },
       {
         "name": "CONFIG_EVENT",
