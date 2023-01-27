@@ -218,12 +218,6 @@ TASK_DEFINITION
     efs_volume_configuration {
       file_system_id          = var.efs_id
       root_directory          = var.efs_dir
-      transit_encryption      = "ENABLED"
-      transit_encryption_port = 2999
-      authorization_config {
-        access_point_id = aws_efs_access_point.uber.id
-        iam             = "ENABLED"
-      }
     }
   }
 
@@ -338,12 +332,6 @@ TASK_DEFINITION
     efs_volume_configuration {
       file_system_id          = var.efs_id
       root_directory          = var.efs_dir
-      transit_encryption      = "ENABLED"
-      transit_encryption_port = 2999
-      authorization_config {
-        access_point_id = aws_efs_access_point.uber.id
-        iam             = "ENABLED"
-      }
     }
   }
 
@@ -352,21 +340,6 @@ TASK_DEFINITION
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
   execution_role_arn        = var.ecs_task_role
-
-  # volume {
-  #   name = "static-files"
-
-  #   efs_volume_configuration {
-  #     file_system_id          = aws_efs_file_system.ubersystem_static.id
-  #     root_directory          = "/"
-  #     # transit_encryption      = "ENABLED"
-  #     # transit_encryption_port = 2999
-  #     # authorization_config {
-  #     #   access_point_id = aws_efs_access_point.test.id
-  #     #   iam             = "ENABLED"
-  #     # }
-  #   }
-  # }
 
   runtime_platform {
     operating_system_family = "LINUX"
