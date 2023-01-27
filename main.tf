@@ -18,6 +18,11 @@ data "aws_vpc" "uber" {
   id = var.vpc_id
 }
 
+data "aws_route53_zone" "uber" {
+  name = var.zonename
+  private_zone = false
+}
+
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Load Balancer
 # -------------------------------------------------------------------
@@ -25,11 +30,6 @@ data "aws_vpc" "uber" {
 resource "aws_acm_certificate" "uber" {
   domain_name       = var.hostname
   validation_method = "DNS"
-}
-
-data "aws_route53_zone" "uber" {
-  name         = var.zonename
-  private_zone = false
 }
 
 resource "aws_route53_record" "uber" {
@@ -55,7 +55,7 @@ resource "aws_acm_certificate_validation" "uber" {
 }
 
 resource "aws_route53_record" "public" {
-  zone_id = var.zonename
+  zone_id = data.aws_route53_zone.uber.id
   name    = var.hostname
   type    = "CNAME"
   ttl     = 5
