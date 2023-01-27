@@ -101,3 +101,11 @@ variable "uber_db_name" {
 variable "uber_db_username" {
     type    = string
 }
+
+variable "efs_id" {
+    type    = string
+}
+
+variable "efs_dir" {
+    type    = string
+}

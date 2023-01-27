@@ -54,7 +54,7 @@ resource "aws_acm_certificate_validation" "uber" {
   validation_record_fqdns = [for record in aws_route53_record.uber : record.fqdn]
 }
 
-resource "aws_route53_record" "uber" {
+resource "aws_route53_record" "public" {
   zone_id = var.zonename
   name    = var.hostname
   type    = "CNAME"
@@ -105,6 +105,19 @@ resource "aws_lb_listener_rule" "uber" {
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Containers (web)
 # -------------------------------------------------------------------
+
+resource "aws_efs_access_point" "uber" {
+  file_system_id = var.efs_id
+
+  root_directory {
+    path = var.efs_dir
+    creation_info {
+      owner_gid   = 65534
+      owner_uid   = 65534
+      permissions = 0755
+    }
+  }
+}
 
 resource "aws_ecs_service" "ubersystem_web" {
   name            = "ubersystem_web"
@@ -186,10 +199,32 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
     ],
     "image": "${var.ubersystem_container}",
     "essential": true,
-    "name": "web"
+    "name": "web",
+    "mountPoints": [
+      {
+        "sourceVolume": "static",
+        "containerPath": "/srv/mnt/reggie/uploaded_files",
+        "readOnly": true
+      }
+    ]
   }
 ]
 TASK_DEFINITION
+
+  volume {
+    name = "static"
+
+    efs_volume_configuration {
+      file_system_id          = var.efs_id
+      root_directory          = var.efs_dir
+      transit_encryption      = "ENABLED"
+      transit_encryption_port = 2999
+      authorization_config {
+        access_point_id = aws_efs_access_point.uber.id
+        iam             = "ENABLED"
+      }
+    }
+  }
 
   cpu                       = 1024
   memory                    = 2048
@@ -198,21 +233,6 @@ TASK_DEFINITION
   execution_role_arn        = var.ecs_task_role
 
   task_role_arn = var.ecs_task_role
-
-  # volume {
-  #   name = "static-files"
-
-  #   efs_volume_configuration {
-  #     file_system_id          = aws_efs_file_system.ubersystem_static.id
-  #     root_directory          = "/"
-  #     # transit_encryption      = "ENABLED"
-  #     # transit_encryption_port = 2999
-  #     # authorization_config {
-  #     #   access_point_id = aws_efs_access_point.test.id
-  #     #   iam             = "ENABLED"
-  #     # }
-  #   }
-  # }
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -262,7 +282,14 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     ],
     "image": "${var.ubersystem_container}",
     "essential": true,
-    "name": "celery-beat"
+    "name": "celery-beat",
+    "mountPoints": [
+      {
+        "sourceVolume": "static",
+        "containerPath": "/srv/mnt/reggie/uploaded_files",
+        "readOnly": true
+      }
+    ]
   },
   {
     "logConfiguration": {
@@ -290,10 +317,32 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
       "startPeriod": null
     },
     "essential": true,
-    "name": "celery-worker"
+    "name": "celery-worker",
+    "mountPoints": [
+      {
+        "sourceVolume": "static",
+        "containerPath": "/srv/mnt/reggie/uploaded_files",
+        "readOnly": true
+      }
+    ]
   }
 ]
 TASK_DEFINITION
+
+  volume {
+    name = "static"
+
+    efs_volume_configuration {
+      file_system_id          = var.efs_id
+      root_directory          = var.efs_dir
+      transit_encryption      = "ENABLED"
+      transit_encryption_port = 2999
+      authorization_config {
+        access_point_id = aws_efs_access_point.uber.id
+        iam             = "ENABLED"
+      }
+    }
+  }
 
   cpu                       = 256
   memory                    = 512
