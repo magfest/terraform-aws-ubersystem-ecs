@@ -44,6 +44,10 @@ variable "loadbalancer_arn" {
     type    = string
 }
 
+variable "loadbalancer_dns_name" {
+    type    = string
+}
+
 variable "lb_web_listener_arn" {
     type    = string
 }

@@ -54,6 +54,16 @@ resource "aws_acm_certificate_validation" "uber" {
   validation_record_fqdns = [for record in aws_route53_record.uber : record.fqdn]
 }
 
+resource "aws_route53_record" "uber" {
+  zone_id = var.zonename
+  name    = var.hostname
+  type    = "CNAME"
+  ttl     = 5
+  records = [
+    var.loadbalancer_dns_name
+  ]
+}
+
 resource "aws_lb_target_group" "ubersystem_web" {
   name_prefix   = "${var.prefix}"
   port          = 80
