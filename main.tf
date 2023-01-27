@@ -14,8 +14,6 @@ terraform {
 # Import Data block for AWS information
 # -------------------------------------------------------------------
 
-data "aws_caller_identity" "current" {}
-
 data "aws_vpc" "uber" {
   id = var.vpc_id
 }
@@ -187,7 +185,7 @@ TASK_DEFINITION
   memory                    = 2048
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
-  execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+  execution_role_arn        = var.ecs_task_role
 
   task_role_arn = var.ecs_task_role
 
@@ -291,7 +289,7 @@ TASK_DEFINITION
   memory                    = 512
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
-  execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+  execution_role_arn        = var.ecs_task_role
 
   # volume {
   #   name = "static-files"
@@ -383,7 +381,7 @@ TASK_DEFINITION
   memory                    = 512
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
-  execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+  execution_role_arn        = var.ecs_task_role
 
   runtime_platform {
     operating_system_family = "LINUX"
@@ -452,7 +450,7 @@ TASK_DEFINITION
   memory                    = 512
   requires_compatibilities  = ["FARGATE"]
   network_mode              = "awsvpc"
-  execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
+  execution_role_arn        = var.ecs_task_role
 
   runtime_platform {
     operating_system_family = "LINUX"
