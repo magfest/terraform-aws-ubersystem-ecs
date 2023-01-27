@@ -30,6 +30,10 @@ variable "hostname" {
     type    = string
 }
 
+variable "zonename" {
+    type    = string
+}
+
 variable "ubersystem_container" {
     type    = string
 
