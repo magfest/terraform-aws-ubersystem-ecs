@@ -70,6 +70,10 @@ variable "environment" {
     type    = string
 }
 
+variable "rds_instance" {
+    type    = any
+}
+
 variable "db_endpoint" {
     type    = string
 }
