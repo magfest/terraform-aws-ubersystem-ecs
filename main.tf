@@ -570,7 +570,6 @@ provider "postgresql" {
   host       = var.db_endpoint
   username   = var.db_username
   password   = var.db_password
-  depends_on = [var.rds_instance]
 }
 
 resource "random_password" "uber" {
@@ -599,7 +598,8 @@ resource "postgresql_database" "uber" {
   connection_limit  = -1
   allow_connections = true
   depends_on = [
-    postgresql_role.uber
+    postgresql_role.uber,
+    var.rds_instance
   ]
 }
 
@@ -609,4 +609,7 @@ resource "postgresql_role" "uber" {
   login            = true
   connection_limit = -1
   password         = aws_secretsmanager_secret_version.password.secret_string
+  depends_on = [
+    var.rds_instance
+  ]
 }
