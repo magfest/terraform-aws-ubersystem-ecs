@@ -520,7 +520,7 @@ resource "aws_lb_listener" "redis" {
 resource "aws_service_discovery_private_dns_namespace" "uber" {
   name        = var.hostname
   description = "Uber Internal Services (${var.hostname})"
-  vpc         = aws_vpc.uber.id
+  vpc         = data.aws_vpc.uber.id
 }
 
 resource "aws_service_discovery_service" "redis" {
