@@ -149,7 +149,8 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "ecs"
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-create-group": "true"
       }
     },
     "portMappings": [
@@ -268,7 +269,8 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "ecs"
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-create-group": "true"
       }
     },
     "command": [
@@ -297,7 +299,8 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "ecs"
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-create-group": "true"
       }
     },
     "environment": [
@@ -405,7 +408,8 @@ resource "aws_ecs_task_definition" "rabbitmq" {
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "ecs"
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-create-group": "true"
       }
     },
     "portMappings": [
@@ -482,7 +486,8 @@ resource "aws_ecs_task_definition" "redis" {
       "options": {
         "awslogs-group": "/ecs/Ubersystem",
         "awslogs-region": "us-east-1",
-        "awslogs-stream-prefix": "ecs"
+        "awslogs-stream-prefix": "ecs",
+        "awslogs-create-group": "true"
       }
     },
     "portMappings": [
