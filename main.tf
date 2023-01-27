@@ -308,15 +308,9 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
       }
     ],
     "image": "${var.ubersystem_container}",
-    "healthCheck": {
-      "retries": 3,
-      "command": [
-        "celery-worker"
-      ],
-      "timeout": 5,
-      "interval": 30,
-      "startPeriod": null
-    },
+    "command": [
+      "celery-worker"
+    ],
     "essential": true,
     "name": "celery-worker",
     "mountPoints": [
