@@ -333,12 +333,6 @@ resource "aws_ecs_service" "rabbitmq" {
     assign_public_ip  = true
   }
 
-  load_balancer {
-    target_group_arn = aws_lb_target_group.rabbitmq.arn
-    container_name   = "rabbitmq"
-    container_port   = 5672
-  }
-
   service_registries {
     registry_arn = aws_service_discovery_service.rabbitmq.arn
   }
@@ -399,26 +393,6 @@ TASK_DEFINITION
   task_role_arn = var.ecs_task_role
 }
 
-resource "aws_lb_target_group" "rabbitmq" {
-  name_prefix = "rabbit"
-  port        = 5672
-  protocol    = "TCP"
-  target_type = "ip"
-  vpc_id      = data.aws_vpc.uber.id
-}
-
-resource "aws_lb_listener" "rabbitmq" {
-  load_balancer_arn = var.loadbalancer_arn
-  port              = "5672"
-  protocol          = "TCP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.rabbitmq.arn
-  }
-}
-
-
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Supporting Services (Redis)
 # -------------------------------------------------------------------
@@ -434,12 +408,6 @@ resource "aws_ecs_service" "redis" {
     subnets           = var.subnet_ids
     security_groups   = var.redis_securitygroups
     assign_public_ip  = true
-  }
-
-  load_balancer {
-    target_group_arn = aws_lb_target_group.redis.arn
-    container_name   = "redis"
-    container_port   = 6379
   }
   
   service_registries {
@@ -492,25 +460,6 @@ TASK_DEFINITION
   }
 
   task_role_arn = "${var.ecs_task_role}"
-}
-
-resource "aws_lb_target_group" "redis" {
-  name_prefix = "redis"
-  port        = 6379
-  protocol    = "TCP"
-  target_type = "ip"
-  vpc_id      = data.aws_vpc.uber.id
-}
-
-resource "aws_lb_listener" "redis" {
-  load_balancer_arn = var.loadbalancer_arn
-  port              = "6379"
-  protocol          = "TCP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.redis.arn
-  }
 }
 
 # -------------------------------------------------------------------
@@ -570,6 +519,7 @@ provider "postgresql" {
   host       = var.db_hostname
   username   = var.db_username
   password   = var.db_password
+  superuser  = false
 }
 
 resource "random_password" "uber" {
