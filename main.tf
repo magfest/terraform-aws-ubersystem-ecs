@@ -217,7 +217,11 @@ TASK_DEFINITION
 
     efs_volume_configuration {
       file_system_id          = var.efs_id
-      root_directory          = var.efs_dir
+      transit_encryption      = "ENABLED"
+      transit_encryption_port = 2999
+      authorization_config {
+        access_point_id = aws_efs_access_point.uber.id
+      }
     }
   }
 
@@ -331,7 +335,11 @@ TASK_DEFINITION
 
     efs_volume_configuration {
       file_system_id          = var.efs_id
-      root_directory          = var.efs_dir
+      transit_encryption      = "ENABLED"
+      transit_encryption_port = 2999
+      authorization_config {
+        access_point_id = aws_efs_access_point.uber.id
+      }
     }
   }
 
