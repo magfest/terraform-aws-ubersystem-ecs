@@ -78,6 +78,10 @@ variable "db_endpoint" {
     type    = string
 }
 
+variable "db_hostname" {
+    type    = string
+}
+
 variable "db_username" {
     type    = string
 }

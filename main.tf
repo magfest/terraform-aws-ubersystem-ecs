@@ -567,7 +567,7 @@ resource "aws_service_discovery_service" "rabbitmq" {
 
 provider "postgresql" {
   alias      = "uber"
-  host       = var.db_endpoint
+  host       = var.db_hostname
   username   = var.db_username
   password   = var.db_password
 }
