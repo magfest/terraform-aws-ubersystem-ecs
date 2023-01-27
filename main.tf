@@ -4,45 +4,60 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 4.38.0"
     }
+    postgresql = {
+      source = "cyrilgdn/postgresql"
+    }
   }
 }
-
 
 # -------------------------------------------------------------------
 # Import Data block for AWS information
 # -------------------------------------------------------------------
 
-data "aws_ecs_cluster" "ecs" {
-  cluster_name = var.ecs_cluster
-}
-
-data "aws_subnet" "primary" {
-  id = var.subnet_ids[0]
-}
-
 data "aws_caller_identity" "current" {}
-
 
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Load Balancer
 # -------------------------------------------------------------------
 
-resource "aws_lb" "ubersystem" {
-  name_prefix        = "uber"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = var.security_groups
-  subnets            = var.subnet_ids
+resource "aws_acm_certificate" "uber" {
+  domain_name       = var.hostname
+  validation_method = "DNS"
+}
 
-  enable_deletion_protection = false
+data "aws_route53_zone" "uber" {
+  name         = var.hostname
+  private_zone = false
+}
+
+resource "aws_route53_record" "uber" {
+  for_each = {
+    for dvo in aws_acm_certificate.uber.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  allow_overwrite = true
+  name            = each.value.name
+  records         = [each.value.record]
+  ttl             = 60
+  type            = each.value.type
+  zone_id         = data.aws_route53_zone.uber.zone_id
+}
+
+resource "aws_acm_certificate_validation" "uber" {
+  certificate_arn         = aws_acm_certificate.uber.arn
+  validation_record_fqdns = [for record in aws_route53_record.uber : record.fqdn]
 }
 
 resource "aws_lb_target_group" "ubersystem_web" {
-  name_prefix   = "uber"
+  name_prefix   = "${var.prefix}"
   port          = 80
   protocol      = "HTTP"
   target_type   = "ip"
-  vpc_id        = data.aws_subnet.primary.vpc_id
+  vpc_id        = var.vpc_id
 
   health_check {
     healthy_threshold   = 2
@@ -54,39 +69,25 @@ resource "aws_lb_target_group" "ubersystem_web" {
   }
 }
 
-resource "aws_lb_listener" "ubersystem_web_http" {
-  load_balancer_arn = aws_lb.ubersystem.arn
-  port              = "80"
-  protocol          = "HTTP"
-  #ssl_policy        = "ELBSecurityPolicy-2016-08"
-  #certificate_arn   = var.cert_arn
+resource "aws_lb_listener_certificate" "uber" {
+  listener_arn    = var.lb_web_listener_arn
+  certificate_arn = aws_acm_certificate_validation.uber.certificate_arn
+}
 
-  default_action {
+resource "aws_lb_listener_rule" "uber" {
+  listener_arn = var.lb_web_listener_arn
+  priority     = var.lb_priority
+
+  action {
     type             = "forward"
     target_group_arn = aws_lb_target_group.ubersystem_web.arn
   }
-}
 
-resource "aws_lb_listener" "ubersystem_web_https" {
-  load_balancer_arn = aws_lb.ubersystem.arn
-  port              = "443"
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = var.cert_arn
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.ubersystem_web.arn
+  condition {
+    host_header {
+      values = [var.hostname]
+    }
   }
-}
-
-resource "aws_lb" "ubersystem_internal" {
-  name_prefix        = "uber"
-  internal           = true
-  load_balancer_type = "network"
-  subnets            = var.subnet_ids
-
-  enable_deletion_protection = false
 }
 
 # -------------------------------------------------------------------
@@ -95,14 +96,14 @@ resource "aws_lb" "ubersystem_internal" {
 
 resource "aws_ecs_service" "ubersystem_web" {
   name            = "ubersystem_web"
-  cluster         = data.aws_ecs_cluster.ecs.id
+  cluster         = var.ecs_cluster
   task_definition = aws_ecs_task_definition.ubersystem_web.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
     subnets           = var.subnet_ids
-    security_groups   = var.security_groups
+    security_groups   = var.uber_web_securitygroups
     assign_public_ip  = true
   }
 
@@ -144,17 +145,31 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
       },
       {
         "name": "SESSION_HOST",
-        "value": "${aws_lb.ubersystem_internal.dns_name}"
+        "value": "redis"
       },
       {
         "name": "BROKER_HOST",
-        "value": "${aws_lb.ubersystem_internal.dns_name}"
-      }
-    ],
-    "secrets": [
+        "value": "rabbitmq"
+      },
+      {
+        "name": "CONFIG_EVENT",
+        "value": "${var.event}"
+      },
+      {
+        "name": "CONFIG_YEAR",
+        "value": "${var.year}"
+      },
+      {
+        "name": "CONFIG_ENVIRONMENT",
+        "value": "${var.environment}"
+      },
+      {
+        "name": "CONFIG_HOSTNAME",
+        "value": "${var.hostname}"
+      },
       {
         "name": "DB_CONNECTION_STRING",
-        "valueFrom": "${var.db_secret}"
+        "value": "postgresql://${var.uber_db_username}:${aws_secretsmanager_secret_version.password}@${var.db_endpoint}/${var.uber_db_name}"
       }
     ],
     "image": "${var.ubersystem_container}",
@@ -170,11 +185,7 @@ TASK_DEFINITION
   network_mode              = "awsvpc"
   execution_role_arn        = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ecsTaskExecutionRole"
 
-  depends_on = [
-    aws_lb_listener.ubersystem_web_http
-  ]
-
-  task_role_arn = aws_iam_role.task_role.arn
+  task_role_arn = var.ecs_task_role
 
   # volume {
   #   name = "static-files"
@@ -204,14 +215,13 @@ TASK_DEFINITION
 
 resource "aws_ecs_service" "ubersystem_celery" {
   name            = "ubersystem_celery"
-  cluster         = data.aws_ecs_cluster.ecs.id
+  cluster         = var.ecs_cluster
   task_definition = aws_ecs_task_definition.ubersystem_celery.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
     subnets           = var.subnet_ids
-    security_groups   = var.security_groups
     assign_public_ip  = true
   }
 }
@@ -232,10 +242,10 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     "command": [
       "celery-beat"
     ],
-    "secrets": [
+    "environment": [
       {
         "name": "DB_CONNECTION_STRING",
-        "valueFrom": "${var.db_secret}"
+        "value": "postgresql://${var.uber_db_username}:${aws_secretsmanager_secret_version.password}@${var.db_endpoint}/${var.uber_db_name}"
       }
     ],
     "image": "${var.ubersystem_container}",
@@ -251,10 +261,10 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
         "awslogs-stream-prefix": "ecs"
       }
     },
-    "secrets": [
+    "environment": [
       {
         "name": "DB_CONNECTION_STRING",
-        "valueFrom": "${var.db_secret}"
+        "value": "postgresql://${var.uber_db_username}:${aws_secretsmanager_secret_version.password}@${var.db_endpoint}/${var.uber_db_name}"
       }
     ],
     "image": "${var.ubersystem_container}",
@@ -308,14 +318,14 @@ TASK_DEFINITION
 
 resource "aws_ecs_service" "rabbitmq" {
   name            = "rabbitmq"
-  cluster         = data.aws_ecs_cluster.ecs.id
+  cluster         = var.ecs_cluster
   task_definition = aws_ecs_task_definition.rabbitmq.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
     subnets           = var.subnet_ids
-    security_groups   = var.security_groups
+    security_groups   = var.rabbitmq_securitygroups
     assign_public_ip  = true
   }
 
@@ -323,6 +333,10 @@ resource "aws_ecs_service" "rabbitmq" {
     target_group_arn = aws_lb_target_group.rabbitmq.arn
     container_name   = "rabbitmq"
     container_port   = 5672
+  }
+
+  service_registries {
+    registry_arn = aws_service_discovery_service.rabbitmq.arn
   }
 }
 
@@ -378,7 +392,7 @@ TASK_DEFINITION
     cpu_architecture        = "X86_64"
   }
 
-  task_role_arn = aws_iam_role.task_role.arn
+  task_role_arn = var.ecs_task_role
 }
 
 resource "aws_lb_target_group" "rabbitmq" {
@@ -386,11 +400,11 @@ resource "aws_lb_target_group" "rabbitmq" {
   port        = 5672
   protocol    = "TCP"
   target_type = "ip"
-  vpc_id      = data.aws_subnet.primary.vpc_id
+  vpc_id      = var.vpc_id
 }
 
 resource "aws_lb_listener" "rabbitmq" {
-  load_balancer_arn = aws_lb.ubersystem_internal.arn
+  load_balancer_arn = var.loadbalancer_arn
   port              = "5672"
   protocol          = "TCP"
 
@@ -407,14 +421,14 @@ resource "aws_lb_listener" "rabbitmq" {
 
 resource "aws_ecs_service" "redis" {
   name            = "redis"
-  cluster         = data.aws_ecs_cluster.ecs.id
+  cluster         = var.ecs_cluster
   task_definition = aws_ecs_task_definition.redis.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
     subnets           = var.subnet_ids
-    security_groups   = var.security_groups
+    security_groups   = var.redis_securitygroups
     assign_public_ip  = true
   }
 
@@ -422,6 +436,10 @@ resource "aws_ecs_service" "redis" {
     target_group_arn = aws_lb_target_group.redis.arn
     container_name   = "redis"
     container_port   = 6379
+  }
+  
+  service_registries {
+    registry_arn = aws_service_discovery_service.redis.arn
   }
 }
 
@@ -469,7 +487,7 @@ TASK_DEFINITION
     cpu_architecture        = "X86_64"
   }
 
-  task_role_arn = aws_iam_role.task_role.arn
+  task_role_arn = "${var.ecs_task_role}"
 }
 
 resource "aws_lb_target_group" "redis" {
@@ -477,11 +495,11 @@ resource "aws_lb_target_group" "redis" {
   port        = 6379
   protocol    = "TCP"
   target_type = "ip"
-  vpc_id      = data.aws_subnet.primary.vpc_id
+  vpc_id      = var.vpc_id
 }
 
 resource "aws_lb_listener" "redis" {
-  load_balancer_arn = aws_lb.ubersystem_internal.arn
+  load_balancer_arn = var.loadbalancer_arn
   port              = "6379"
   protocol          = "TCP"
 
@@ -492,41 +510,98 @@ resource "aws_lb_listener" "redis" {
 }
 
 # -------------------------------------------------------------------
-# MAGFest Ubersystem Shared File Directory
+# DNS Service Discovery
 # -------------------------------------------------------------------
 
-resource "aws_efs_file_system" "ubersystem_static" {
-  creation_token = "ubersystem"
+resource "aws_service_discovery_private_dns_namespace" "uber" {
+  name        = var.hostname
+  description = "Uber Internal Services (${var.hostname})"
+  vpc         = var.vpc_id
+}
 
-  tags = {
-    Name = "ubersystem"
+resource "aws_service_discovery_service" "redis" {
+  name = "redis"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.uber.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
+  }
+}
+
+resource "aws_service_discovery_service" "rabbitmq" {
+  name = "rabbitmq"
+
+  dns_config {
+    namespace_id = aws_service_discovery_private_dns_namespace.uber.id
+
+    dns_records {
+      ttl  = 10
+      type = "A"
+    }
+
+    routing_policy = "MULTIVALUE"
+  }
+
+  health_check_custom_config {
+    failure_threshold = 1
   }
 }
 
 # -------------------------------------------------------------------
-# MAGFest Task Role
+# Database
 # -------------------------------------------------------------------
 
-resource "aws_iam_role" "task_role" {
-  name_prefix = "uber"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Sid    = ""
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        }
-      },
-    ]
-  })
+provider "postgresql" {
+  alias    = "uber"
+  host     = var.db_endpoint
+  username = var.db_username
+  password = var.db_password
 }
 
-# resource "aws_iam_role_policy_attachment" "task_role_envoy" {
-#   role       = aws_iam_role.task_role.name
-#   policy_arn = "arn:aws:iam::aws:policy/AWSAppMeshEnvoyAccess"
-# }
+resource "random_password" "uber" {
+  length            = 40
+  special           = false
+  keepers           = {
+    pass_version  = 2
+  }
+}
 
+resource "aws_secretsmanager_secret" "db_password" {
+  name = "${var.prefix}-db-password"
+}
+
+resource "aws_secretsmanager_secret_version" "password" {
+  secret_id = aws_secretsmanager_secret.db_password.id
+  secret_string = random_password.uber.result
+}
+
+resource "postgresql_database" "uber" {
+  provider          = postgresql.uber
+  name              = var.uber_db_name
+  owner             = var.uber_db_username
+  template          = "template0"
+  lc_collate        = "C"
+  connection_limit  = -1
+  allow_connections = true
+  depends_on = [
+    postgresql_role.uber
+  ]
+}
+
+resource "postgresql_role" "uber" {
+  provider         = postgresql.uber
+  name             = var.uber_db_username
+  login            = true
+  connection_limit = -1
+  password         = aws_secretsmanager_secret_version.password
+}
