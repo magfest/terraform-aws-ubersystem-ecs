@@ -23,6 +23,10 @@ data "aws_route53_zone" "uber" {
   private_zone = false
 }
 
+data "docker_registry_image" "uber" {
+  name = var.ubersystem_container
+}
+
 # -------------------------------------------------------------------
 # MAGFest Ubersystem Load Balancer
 # -------------------------------------------------------------------
@@ -34,7 +38,7 @@ resource "aws_acm_certificate" "uber" {
 
 resource "aws_route53_record" "uber" {
   for_each = {
-    for dvo in aws_acm_certificate.uber.domain_validation_options : dvo.domain_name => {
+    for dvo in aws_acm_certificate.uber.domain_validation_options : "record" => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
       type   = dvo.resource_record_type
@@ -198,13 +202,13 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
         "value": "postgresql://${var.uber_db_username}:${aws_secretsmanager_secret_version.password.secret_string}@${var.db_endpoint}/${var.uber_db_name}"
       }
     ],
-    "image": "${var.ubersystem_container}",
+    "image": "${var.ubersystem_container}@sha256:${docker_registry_image.uber.sha256_digest}",
     "essential": true,
     "name": "web",
     "mountPoints": [
       {
         "sourceVolume": "static",
-        "containerPath": "/srv/mnt/reggie/uploaded_files",
+        "containerPath": "/app/plugins/uber/uploaded_files",
         "readOnly": true
       }
     ]
@@ -284,13 +288,13 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
         "value": "rabbitmq.${var.hostname}"
       }
     ],
-    "image": "${var.ubersystem_container}",
+    "image": "${var.ubersystem_container}@sha256:${docker_registry_image.uber.sha256_digest}",
     "essential": true,
     "name": "celery-beat",
     "mountPoints": [
       {
         "sourceVolume": "static",
-        "containerPath": "/srv/mnt/reggie/uploaded_files",
+        "containerPath": "/app/plugins/uber/uploaded_files",
         "readOnly": true
       }
     ]
@@ -315,7 +319,7 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
         "value": "rabbitmq.${var.hostname}"
       }
     ],
-    "image": "${var.ubersystem_container}",
+    "image": "${var.ubersystem_container}@sha256:${docker_registry_image.uber.sha256_digest}",
     "command": [
       "celery-worker"
     ],
@@ -324,7 +328,7 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
     "mountPoints": [
       {
         "sourceVolume": "static",
-        "containerPath": "/srv/mnt/reggie/uploaded_files",
+        "containerPath": "/app/plugins/uber/uploaded_files",
         "readOnly": true
       }
     ]
