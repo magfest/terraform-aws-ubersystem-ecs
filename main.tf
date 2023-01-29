@@ -7,9 +7,6 @@ terraform {
     postgresql = {
       source = "cyrilgdn/postgresql"
     }
-    docker = {
-      source = "kreuzwerker/docker"
-    }
   }
 }
 
@@ -26,8 +23,9 @@ data "aws_route53_zone" "uber" {
   private_zone = false
 }
 
-data "docker_registry_image" "uber" {
-  name = var.ubersystem_container
+module "uber_image" {
+  source = "github.com/magfest/terraform-docker-resolve"
+  image = var.ubersystem_container
 }
 
 # -------------------------------------------------------------------
@@ -205,7 +203,7 @@ resource "aws_ecs_task_definition" "ubersystem_web" {
         "value": "postgresql://${var.uber_db_username}:${aws_secretsmanager_secret_version.password.secret_string}@${var.db_endpoint}/${var.uber_db_name}"
       }
     ],
-    "image": "${var.ubersystem_container}@sha256:${data.docker_registry_image.uber.sha256_digest}",
+    "image": "${var.ubersystem_container}@sha256:${module.uber_image.docker_digest}",
     "essential": true,
     "name": "web",
     "mountPoints": [
@@ -291,7 +289,7 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
         "value": "rabbitmq.${var.hostname}"
       }
     ],
-    "image": "${var.ubersystem_container}@sha256:${data.docker_registry_image.uber.sha256_digest}",
+    "image": "${var.ubersystem_container}@sha256:${module.uber_image.docker_digest}",
     "essential": true,
     "name": "celery-beat",
     "mountPoints": [
@@ -322,7 +320,7 @@ resource "aws_ecs_task_definition" "ubersystem_celery" {
         "value": "rabbitmq.${var.hostname}"
       }
     ],
-    "image": "${var.ubersystem_container}@sha256:${data.docker_registry_image.uber.sha256_digest}",
+    "image": "${var.ubersystem_container}@sha256:${module.uber_image.docker_digest}",
     "command": [
       "celery-worker"
     ],
